@@ -26,7 +26,9 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADER_FILES})
 
 # Detect and add SFML
 #set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "C:/SFML-2.4.2/cmake/Modules/") # Hard-coded search 
+# Environment variable driven search 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "$ENV{SFML_ROOT}/cmake/Modules/") 
+
 #Find any version 2.X of SFML
 #See the FindSFML.cmake file for additional details and instructions
 find_package(SFML 2 REQUIRED network audio graphics window system)
