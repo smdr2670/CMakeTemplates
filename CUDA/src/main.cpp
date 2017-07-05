@@ -1,23 +1,31 @@
-#include <stdio.h>
-
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include <iostream>
 
 #include "myKernel.h"
 
 #define SIZE 1024
 
+#define checkCudaErrors(val) check( (val), #val, __FILE__,__LINE__)
+
+template <typename T>
+void check(T err, const char* const func, const char* const file, const int line) {
+    if (err != cudaSuccess) {
+        std::cerr << "CUDA error at: " << file << ":" << line << std::endl;
+        std::cerr << cudaGetErrorString(err) << " " << func << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main() {
     int *a, *b, *c;       // host pointer
     int *d_a, *d_b, *d_c; // device pointer
 
-    a = (int *)malloc(SIZE * sizeof(int));
-    b = (int *)malloc(SIZE * sizeof(int));
-    c = (int *)malloc(SIZE * sizeof(int));
+    a = new int[SIZE];
+    b = new int[SIZE];
+    c = new int[SIZE];
 
-    cudaMalloc(&d_a, SIZE * sizeof(int));
-    cudaMalloc(&d_b, SIZE * sizeof(int));
-    cudaMalloc(&d_c, SIZE * sizeof(int));
+    checkCudaErrors(cudaMalloc(&d_a, SIZE * sizeof(int)));
+    checkCudaErrors(cudaMalloc(&d_b, SIZE * sizeof(int)));
+    checkCudaErrors(cudaMalloc(&d_c, SIZE * sizeof(int)));
 
     for (int i = 0; i < SIZE; i++) {
         a[i] = i;
@@ -25,26 +33,29 @@ int main() {
         c[i] = 0;
     }
 
-    cudaMemcpy(d_a, a, SIZE * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, b, SIZE * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_c, c, SIZE * sizeof(int), cudaMemcpyHostToDevice);
+    checkCudaErrors(cudaMemcpy(d_a, a, SIZE * sizeof(int), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_b, b, SIZE * sizeof(int), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_c, c, SIZE * sizeof(int), cudaMemcpyHostToDevice));
 
-    //vectorAdd <<< 1, SIZE >>> (d_a, d_b, d_c, SIZE);
-    vectorWrap(d_a, d_b, d_c, SIZE);
-
-    cudaMemcpy(c, d_c, SIZE * sizeof(int), cudaMemcpyDeviceToHost);
-
+    const dim3 blockSize(SIZE, 1, 1);
+    const dim3 gridSize(1, 1, 1);
+    // invoking the Kernel (kernel is invoked asynchrounsly)
+    myGPUvectorAdd(gridSize, blockSize, d_a, d_b, d_c, SIZE);
+    // cudaMemcpy() has an inherent blocking device synchronization built into them. 
+    //checkCudaErrors(cudaDeviceSynchronize());
+    checkCudaErrors(cudaMemcpy(c, d_c, SIZE * sizeof(int), cudaMemcpyDeviceToHost));
+    
     for (int i = 0; i < 10; i++) {
         printf("c[%d] = %d\n", i, c[i]);
     }
 
-    free(a);
-    free(b);
-    free(c);
+    delete[] a;
+    delete[] b;
+    delete[] c;
 
-    cudaFree(d_a);
-    cudaFree(d_b);
-    cudaFree(d_c);
+    checkCudaErrors(cudaFree(d_a));
+    checkCudaErrors(cudaFree(d_b));
+    checkCudaErrors(cudaFree(d_c));
 
-    return 0;
+    return EXIT_SUCCESS;
 }
