@@ -6,6 +6,6 @@
 
 __global__ void vectorAdd(int* a, int* b, int* c, int n);
 
-void vectorWrap(int* a, int* b, int* c, int n);
+void myGPUvectorAdd(const dim3 blockSize, const dim3 gridSize, int* a, int* b, int* c, int n);
 
 #endif 
