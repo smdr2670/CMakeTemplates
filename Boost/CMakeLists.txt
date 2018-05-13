@@ -21,6 +21,8 @@ endif()
 file(GLOB BOOSTCVEXAMPLE_SOURCES	"*.cpp")
 file(GLOB BOOSTCVEXAMPLE_INCLUDES	"*.h")
 
+include_directories("include/")
+
 source_group("" FILES ${BOOSTCVEXAMPLE_SOURCES} ${BOOSTCVEXAMPLE_INCLUDES})
 #source_group("Source Files" FILES "main.cpp")
 
