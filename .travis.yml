@@ -1,18 +1,128 @@
-language: 
-  - cpp
+sudo: required
+dist: trusty
+language: cpp
 
-compiler:
-  - gcc
-   
+cache:
+  directories:
+    - $HOME/opencv-3.3.0
+    - $HOME/opencv_contrib-3.3.0
+
+matrix:
+  include:
+    - os: linux
+      compiler: g++
+
+    - os: osx
+      compiler: clang++
+
+before_install:
+  - if   [[ "$TRAVIS_OS_NAME" == "linux" ]];
+    then
+      sudo apt-get update -qq;
+    elif [[ "$TRAVIS_OS_NAME" ==   "osx" ]];
+    then
+      /usr/bin/yes | pip uninstall numpy;
+      brew update;
+    fi
+
+install:
+  - if   [[ "$TRAVIS_OS_NAME" == "linux" ]];
+    then
+      sudo apt-get install -qq libboost-filesystem-dev
+                               libboost-program-options-dev
+                               libboost-system-dev
+                               libavcodec54
+                               libavcodec-dev
+                               libavformat54
+                               libavformat-dev
+                               libavresample1
+                               libavresample-dev
+                               libavutil52
+                               libavutil-dev
+                               libswscale2
+                               libswscale-dev
+                               libtbb2
+                               libtbb-dev
+                               libjpeg-dev
+                               libpng-dev
+                               libtiff-dev
+                               libjasper-dev
+                               libeigen3-dev;
+      fi
+  
+  # Install other dependencies (opencv, eigen, graphviz)
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then /usr/bin/yes | pip2 uninstall numpy || true; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install opencv eigen graphviz; fi
+
+    
 before_script:
-  - sudo apt-get install build-essential
-  - sudo apt-get install cmake
-  #- sudo apt-get install libboost-all-dev
-  - sudo apt-get install libopencv-dev
-  #- sudo apt-get install libeigen3-dev
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]];
+    then
+      cd "$HOME";
+      if [[ -n "$(ls -A opencv-3.3.0)" ]];
+      then
+        echo "OpenCV 3.3 with contrib has been fetched from the cache";
+        cd opencv-3.3.0/build;
+      else
+        echo "Compiling and installing OpenCV 3.3 with contrib";
+        wget https://github.com/opencv/opencv/archive/3.3.0.tar.gz;
+        wget https://github.com/opencv/opencv_contrib/archive/3.3.0.tar.gz;
+        tar zxf 3.3.0.tar.gz;
+        tar zxf 3.3.0.tar.gz.1;
+        cd opencv-3.3.0;
+        mkdir build;
+        cd build;
+        cmake -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_INSTALL_PREFIX=/usr/local
+              -DWITH_OPENCL=OFF
+              -DWITH_CUDA=OFF
+              -DWITH_VTK=OFF
+              -DWITH_MATLAB=OFF
+              -DBUILD_opencv_java=OFF
+              -DBUILD_opencv_python2=OFF
+              -DBUILD_opencv_python3=OFF
+              -DBUILD_TESTS=OFF
+              -DBUILD_PERF_TESTS=OFF
+              -DOPENCV_EXTRA_MODULES_PATH=$HOME/opencv_contrib-3.3.0/modules
+              -DBUILD_opencv_aruco=OFF
+              -DBUILD_opencv_bgsegm=OFF
+              -DBUILD_opencv_bioinspired=OFF
+              -DBUILD_opencv_ccalib=OFF
+              -DBUILD_opencv_cnn_3dobj=OFF
+              -DBUILD_opencv_contrib_world=OFF
+              -DBUILD_opencv_cvv=OFF
+              -DBUILD_opencv_datasets=OFF
+              -DBUILD_opencv_dnn=OFF
+              -DBUILD_opencv_dpm=OFF
+              -DBUILD_opencv_face=OFF
+              -DBUILD_opencv_freetype=OFF
+              -DBUILD_opencv_fuzzy=OFF
+              -DBUILD_opencv_hdf=OFF
+              -DBUILD_opencv_img_hash=OFF
+              -DBUILD_opencv_line_descriptor=OFF
+              -DBUILD_opencv_matlab=OFF
+              -DBUILD_opencv_phase_unwrapping=OFF
+              -DBUILD_opencv_plot=OFF
+              -DBUILD_opencv_reg=OFF
+              -DBUILD_opencv_rgbd=OFF
+              -DBUILD_opencv_saliency=OFF
+              -DBUILD_opencv_sfm=OFF
+              -DBUILD_opencv_stereo=OFF
+              -DBUILD_opencv_structured_light=OFF
+              -DBUILD_opencv_surface_matching=OFF
+              -DBUILD_opencv_text=OFF
+              -DBUILD_opencv_tracking=OFF
+              -DBUILD_opencv_xfeatures2d=OFF
+              -DBUILD_opencv_xobjdetect=OFF
+              -DBUILD_opencv_xphoto=OFF ..;
+        make -j4;
+      fi;
+      sudo make -j4 install;
+      cd "$TRAVIS_BUILD_DIR";
+    fi
+
+script:
   - mkdir build
   - cd build
-  - cmake ..
-
-script: 
+  - cmake -DCMAKE_BUILD_TYPE=Release ..;
   - make
