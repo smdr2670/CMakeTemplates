@@ -1,12 +1,18 @@
-language: cpp
+language: 
+  - cpp
 
 compiler:
   - gcc
-  - clang
-
+   
 before_script:
+  - sudo apt-get install build-essential
+  - sudo apt-get install cmake
+  #- sudo apt-get install libboost-all-dev
+  - sudo apt-get install libopencv-dev
+  #- sudo apt-get install libeigen3-dev
   - mkdir build
   - cd build
   - cmake ..
 
-script: make && make test
+script: 
+  - make
