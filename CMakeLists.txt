@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 2.6)
 project(CMakeTemplates)
 
 add_subdirectory(OpenCV)
-add_subdirectory(OpenGL)
-add_subdirectory(Qt)
+#add_subdirectory(OpenGL)
+#add_subdirectory(Qt)
 
 
 
