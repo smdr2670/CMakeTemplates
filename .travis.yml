@@ -6,6 +6,7 @@ cache:
   directories:
     - $HOME/opencv-3.3.0
     - $HOME/opencv_contrib-3.3.0
+    
 
 matrix:
   include:
@@ -19,6 +20,7 @@ before_install:
   - if   [[ "$TRAVIS_OS_NAME" == "linux" ]];
     then
       sudo apt-get update -qq;
+      sudo apt-get install libboost-all-dev;
     elif [[ "$TRAVIS_OS_NAME" ==   "osx" ]];
     then
       /usr/bin/yes | pip uninstall numpy;
@@ -28,9 +30,7 @@ before_install:
 install:
   - if   [[ "$TRAVIS_OS_NAME" == "linux" ]];
     then
-      sudo apt-get install -qq libboost-filesystem-dev
-                               libboost-program-options-dev
-                               libboost-system-dev
+      sudo apt-get install -qq libboost-all-dev
                                libavcodec54
                                libavcodec-dev
                                libavformat54
@@ -64,6 +64,7 @@ before_script:
         echo "OpenCV 3.3 with contrib has been fetched from the cache";
         cd opencv-3.3.0/build;
       else
+        # Compiling and installing OpenCV 3.3 with contrib"
         echo "Compiling and installing OpenCV 3.3 with contrib";
         wget https://github.com/opencv/opencv/archive/3.3.0.tar.gz;
         wget https://github.com/opencv/opencv_contrib/archive/3.3.0.tar.gz;
